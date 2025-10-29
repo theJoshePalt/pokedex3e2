@@ -1,54 +1,51 @@
+import "@/global.css";
+// app/PokemonScreen.tsx
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ActivityIndicator, TouchableOpacity } from "react-native";
+// Hook de Expo Router para leer parámetros pasados por la URL (como el id del Pokémon)
+import { useLocalSearchParams } from "expo-router";
 
-// 🔹 Componente principal de la pantalla
 export default function PokemonScreen() {
+  // Obtenemos el parámetro `id` que viene desde el menú (por ejemplo: /PokemonScreen?id=25)
+  const { id } = useLocalSearchParams();
 
-  // 🧩 Estados (useState)
- 
-  const [pokemon, setPokemon] = useState<any>(null); // Guarda los datos del Pokémon obtenido de la API
-  
-  const [loading, setLoading] = useState(true);// Controla si la app está cargando los datos (true = cargando)
-  
-  const [showStats, setShowStats] = useState(false);// Controla si se muestran o no las estadísticas base
+  // Estado que guarda los datos del Pokémon actual
+  const [pokemon, setPokemon] = useState<any>(null);
+  // Estado que controla si se está cargando la información
+  const [loading, setLoading] = useState(true);
+  // Estado para mostrar u ocultar las estadísticas base
+  const [showStats, setShowStats] = useState(false);
 
-  //useEffect: se ejecuta una sola vez cuando la pantalla carga
+  // 🔹 useEffect se ejecuta cada vez que cambia el id (cuando abres otro Pokémon)
   useEffect(() => {
-    // Función asíncrona para obtener los datos del Pokémon desde la PokeAPI
     const fetchPokemon = async () => {
       try {
-        // Llamado a la API (en este caso del Pokémon Psyduck)
-        const res = await fetch("https://pokeapi.co/api/v2/pokemon/psyduck");
-        // Convertimos la respuesta en JSON
-        const data = await res.json();
-        // Guardamos los datos en el estado
-        setPokemon(data);
+        // Llamada a la API: si no hay id, se usa por defecto "psyduck"
+        const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id || "psyduck"}`);
+        const data = await res.json(); // Convertimos la respuesta a JSON
+        setPokemon(data); // Guardamos los datos del Pokémon
       } catch (error) {
-        // Si ocurre un error, se muestra en consola
         console.error("Error cargando Pokémon:", error);
       } finally {
-        // Cuando termina (éxito o error), desactiva el estado de carga
+        // Desactivamos el estado de carga
         setLoading(false);
       }
     };
 
-    // Llamamos a la función para obtener los datos
-    fetchPokemon();
-  }, []); // [] → asegura que solo se ejecute una vez al montar el componente
+    fetchPokemon(); // Llamamos la función al cargar el componente
+  }, [id]); // Se ejecuta nuevamente si cambia el id
 
-  //  Mientras se cargan los datos, muestra un indicador de carga
+  // 🔹 Si los datos aún se están cargando, mostramos un indicador
   if (loading) {
     return (
       <View className="flex-1 justify-center items-center bg-yellow-50">
-        {/* Spinner de carga */}
         <ActivityIndicator size="large" color="#facc15" />
-        {/* Mensaje de carga */}
-        <Text className="text-gray-700 mt-3">Cargando Psyduck...</Text>
+        <Text className="text-gray-700 mt-3">Cargando Pokémon...</Text>
       </View>
     );
   }
 
-  //  Si no se pudo obtener el Pokémon, muestra un mensaje de error
+  // 🔹 Si no se pudo cargar el Pokémon (error o sin datos)
   if (!pokemon) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -57,7 +54,7 @@ export default function PokemonScreen() {
     );
   }
 
-  // ✅ Si ya se cargaron los datos, se muestra toda la información
+  // 🔹 Interfaz principal del Pokémon
   return (
     <View className="flex-1 bg-yellow-100 justify-center items-center p-6">
       {/* Nombre del Pokémon */}
@@ -72,20 +69,18 @@ export default function PokemonScreen() {
         resizeMode="contain"
       />
 
-      {/* Tipo(s) del Pokémon */}
+      {/* Tipo(s), altura y peso */}
       <Text className="text-lg text-gray-700">
         Tipo: {pokemon.types.map((t: any) => t.type.name).join(", ")}
       </Text>
-
-      {/* Altura y peso (la API los da en decímetros y hectogramos, por eso se dividen entre 10) */}
       <Text className="text-lg text-gray-700">Altura: {pokemon.height / 10} m</Text>
       <Text className="text-lg text-gray-700 mb-4">
         Peso: {pokemon.weight / 10} kg
       </Text>
 
-      {/* Botón para mostrar/ocultar las estadísticas base */}
+      {/* Botón para mostrar u ocultar las estadísticas */}
       <TouchableOpacity
-        onPress={() => setShowStats(!showStats)} // Cambia el estado al tocar el botón
+        onPress={() => setShowStats(!showStats)} // Cambia el estado entre mostrar/ocultar
         className="bg-yellow-500 px-6 py-2 rounded-2xl mt-3 shadow"
       >
         <Text className="text-white font-semibold">
@@ -100,7 +95,7 @@ export default function PokemonScreen() {
             Estadísticas base
           </Text>
 
-          {/* Recorremos el arreglo de stats y mostramos cada una */}
+          {/* Listado de las estadísticas del Pokémon (ej: HP, Ataque, Defensa, etc.) */}
           {pokemon.stats.map((s: any, index: number) => (
             <View key={index} className="flex-row justify-between mb-1">
               <Text className="capitalize text-gray-600">{s.stat.name}</Text>
