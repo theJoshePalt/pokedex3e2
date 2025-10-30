@@ -1,51 +1,67 @@
 import "@/global.css";
-// app/PokemonScreen.tsx
+
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ActivityIndicator, TouchableOpacity } from "react-native";
-// Hook de Expo Router para leer parámetros pasados por la URL (como el id del Pokémon)
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router"; // Permite recibir parámetros desde la navegación (por ejemplo, el ID del Pokémon)
+
+// 🎨 Mapa de colores según el tipo de Pokémon (Primera generación)
+// Cada tipo tiene un color que se usará como fondo dinámico
+const typeColors: Record<string, string> = {
+  fire: "#F08030",     //  Fuego → Naranja
+  water: "#6890F0",    //  Agua → Azul
+  grass: "#78C850",    //  Planta → Verde
+  electric: "#F8D030", //  Eléctrico → Amarillo
+  ice: "#98D8D8",      //  Hielo → Celeste
+  rock: "#B8A038",     //  Roca → Marrón oscuro
+  flying: "#A890F0",   //  Volador → Lila
+  psychic: "#F85888",  //  Psíquico → Rosa fuerte
+  poison: "#A040A0",   //  Veneno → Morado
+  fighting: "#C03028", //  Lucha → Rojo oscuro
+  ground: "#E0C068",   //  Tierra → Amarillo terroso
+  ghost: "#705898",    //  Fantasma → Púrpura
+  bug: "#A8B820",      //  Bicho → Verde amarillento
+  normal: "#A8A878",   //  Normal → Beige grisáceo
+  dragon: "#7038F8",   //  Dragón → Violeta brillante
+};
 
 export default function PokemonScreen() {
-  // Obtenemos el parámetro `id` que viene desde el menú (por ejemplo: /PokemonScreen?id=25)
+  // Obtiene el parámetro "id" desde la URL (por ejemplo, /pokemon/25 para Pikachu)
   const { id } = useLocalSearchParams();
 
-  // Estado que guarda los datos del Pokémon actual
-  const [pokemon, setPokemon] = useState<any>(null);
-  // Estado que controla si se está cargando la información
-  const [loading, setLoading] = useState(true);
-  // Estado para mostrar u ocultar las estadísticas base
-  const [showStats, setShowStats] = useState(false);
+  // useState: variables de estado
+  const [pokemon, setPokemon] = useState<any>(null);  // Guarda la información del Pokémon
+  const [loading, setLoading] = useState(true);       // Controla el indicador de carga
+  const [showStats, setShowStats] = useState(false);  // Muestra u oculta las estadísticas
 
-  // 🔹 useEffect se ejecuta cada vez que cambia el id (cuando abres otro Pokémon)
+  // 🌀 useEffect: se ejecuta al cargar la pantalla o cuando cambia el ID del Pokémon
   useEffect(() => {
     const fetchPokemon = async () => {
       try {
-        // Llamada a la API: si no hay id, se usa por defecto "psyduck"
+        // 📡 Llama a la API de Pokémon con el ID recibido o por defecto usa "psyduck"
         const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${id || "psyduck"}`);
-        const data = await res.json(); // Convertimos la respuesta a JSON
-        setPokemon(data); // Guardamos los datos del Pokémon
+        const data = await res.json(); // Convierte la respuesta a JSON
+        setPokemon(data);              // Guarda los datos del Pokémon
       } catch (error) {
         console.error("Error cargando Pokémon:", error);
       } finally {
-        // Desactivamos el estado de carga
-        setLoading(false);
+        setLoading(false);             // Desactiva el estado de carga al final
       }
     };
 
-    fetchPokemon(); // Llamamos la función al cargar el componente
-  }, [id]); // Se ejecuta nuevamente si cambia el id
+    fetchPokemon(); // Ejecuta la función al iniciar
+  }, [id]); // Dependencia: se ejecuta cuando cambia el ID
 
-  // 🔹 Si los datos aún se están cargando, mostramos un indicador
+  // 💫 Mientras los datos se cargan, muestra un spinner animado
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-yellow-50">
+      <View className="flex-1 justify-center items-center bg-gray-100">
         <ActivityIndicator size="large" color="#facc15" />
         <Text className="text-gray-700 mt-3">Cargando Pokémon...</Text>
       </View>
     );
   }
 
-  // 🔹 Si no se pudo cargar el Pokémon (error o sin datos)
+  // 🚨 Si no se pudo obtener información del Pokémon, muestra un mensaje de error
   if (!pokemon) {
     return (
       <View className="flex-1 justify-center items-center">
@@ -54,52 +70,80 @@ export default function PokemonScreen() {
     );
   }
 
-  // 🔹 Interfaz principal del Pokémon
+  // 🎨 Determina el tipo principal del Pokémon y su color base
+  const mainType = pokemon.types[0].type.name;      // Ejemplo: "fire", "water", etc.
+  const bgColor = typeColors[mainType] || "#EEE";   // Si no se encuentra, usa gris claro
+  const textColor = mainType === "electric" ? "#2E2E2E" : "white"; // Eléctrico tiene texto oscuro
+
+  // 🧱 Interfaz principal de la pantalla del Pokémon
   return (
-    <View className="flex-1 bg-yellow-100 justify-center items-center p-6">
-      {/* Nombre del Pokémon */}
-      <Text className="text-3xl font-bold text-yellow-800 mb-2 capitalize">
+    <View
+      className="flex-1 justify-center items-center p-6"
+      style={{ backgroundColor: bgColor }} // Fondo cambia dinámicamente por tipo
+    >
+      {/* 🔤 Nombre del Pokémon */}
+      <Text
+        className="text-4xl font-bold mb-2 capitalize"
+        style={{ color: textColor }}
+      >
         {pokemon.name}
       </Text>
 
-      {/* Imagen oficial del Pokémon */}
+      {/* 🖼️ Imagen oficial del Pokémon */}
       <Image
         source={{ uri: pokemon.sprites.other["official-artwork"].front_default }}
-        className="w-52 h-52 mb-4"
+        className="w-56 h-56 mb-4"
         resizeMode="contain"
       />
 
-      {/* Tipo(s), altura y peso */}
-      <Text className="text-lg text-gray-700">
+      {/* 📋 Información básica */}
+      <Text className="text-lg mb-1" style={{ color: textColor }}>
         Tipo: {pokemon.types.map((t: any) => t.type.name).join(", ")}
       </Text>
-      <Text className="text-lg text-gray-700">Altura: {pokemon.height / 10} m</Text>
-      <Text className="text-lg text-gray-700 mb-4">
+      <Text className="text-lg mb-1" style={{ color: textColor }}>
+        Altura: {pokemon.height / 10} m
+      </Text>
+      <Text className="text-lg mb-4" style={{ color: textColor }}>
         Peso: {pokemon.weight / 10} kg
       </Text>
 
-      {/* Botón para mostrar u ocultar las estadísticas */}
+      {/* 🔘 Botón para mostrar u ocultar estadísticas */}
       <TouchableOpacity
-        onPress={() => setShowStats(!showStats)} // Cambia el estado entre mostrar/ocultar
-        className="bg-yellow-500 px-6 py-2 rounded-2xl mt-3 shadow"
+        onPress={() => setShowStats(!showStats)}
+        className="px-6 py-2 rounded-2xl mt-3 shadow"
+        style={{
+          backgroundColor: textColor, // Color del botón opuesto al fondo
+        }}
       >
-        <Text className="text-white font-semibold">
+        <Text
+          className="font-semibold"
+          style={{
+            color: bgColor, // Texto del botón del mismo color que el fondo
+          }}
+        >
           {showStats ? "Ocultar Stats" : "Ver Stats"}
         </Text>
       </TouchableOpacity>
 
-      {/* Si showStats es true, se muestran las estadísticas base */}
+      {/* 📊 Sección de estadísticas base (solo si showStats es true) */}
       {showStats && (
-        <View className="mt-4 w-full bg-white rounded-2xl p-4">
-          <Text className="text-center font-bold text-gray-800 text-xl mb-2">
+        <View className="mt-4 w-full rounded-2xl p-4 bg-white/20">
+          <Text
+            className="text-center font-bold text-xl mb-2"
+            style={{ color: textColor }}
+          >
             Estadísticas base
           </Text>
 
-          {/* Listado de las estadísticas del Pokémon (ej: HP, Ataque, Defensa, etc.) */}
+          {/* 🔹 Recorre el array de stats y muestra cada una con su valor */}
           {pokemon.stats.map((s: any, index: number) => (
             <View key={index} className="flex-row justify-between mb-1">
-              <Text className="capitalize text-gray-600">{s.stat.name}</Text>
-              <Text className="font-bold text-gray-800">{s.base_stat}</Text>
+              <Text className="capitalize" style={{ color: textColor }}>
+                {s.stat.name}
+              </Text>
+              <Text className="font-bold" style={{ color: textColor }}>
+                {s.base_stat}
+              </Text>
             </View>
           ))}
         </View>

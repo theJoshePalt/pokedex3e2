@@ -1,22 +1,20 @@
-// app/MenuScreen.tsx
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import "@/global.css";
-export default function MenuScreen() {
-  // Estado para almacenar todos los pokémones de la primera generación
-  const [pokemonList, setPokemonList] = useState<any[]>([]);
-  // Estado para manejar el indicador de carga
-  const [loading, setLoading] = useState(true);
-  // Hook de navegación de Expo Router (para ir a otras pantallas)
-  const router = useRouter();
 
-  // 🔹 useEffect se ejecuta una sola vez cuando la pantalla se carga
+export default function MenuScreen() {
+  
+  const [pokemonList, setPokemonList] = useState<any[]>([]);// Estado para almacenar todos los pokémones de la primera generación
+  const [loading, setLoading] = useState(true);// Estado para manejar el indicador de carga
+  const router = useRouter();// Hook de navegación (para ir a otras pantallas)
+
+  // useEffect se ejecuta una sola vez cuando la pantalla se carga
   useEffect(() => {
     const fetchPokemons = async () => {
       try {
         // Llamada a la API para obtener los primeros 151 Pokémon (Generación 1)
-        const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
+        const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");//AQUI SE LIMITO A SOLO 151
         const data = await response.json();
 
         // Transformamos los resultados para agregar una imagen de cada Pokémon
@@ -56,11 +54,11 @@ export default function MenuScreen() {
     );
   }
 
-  // 🔹 Renderizamos la lista con FlatList (mejor rendimiento que ScrollView)
+  //  Renderizamos la lista con FlatList (mejor rendimiento que ScrollView)
   return (
-    <View className="flex-1 bg-yellow-50 p-3">
+    <View className="flex-1 bg-[#FF9B8A] p-3">
       {/* Encabezado de la Pokédex */}
-      <Text className="text-3xl font-bold text-yellow-800 text-center mb-4">
+      <Text className="text-3xl font-bold text-[#470B00] text-center mb-4">
         Pokédex (Gen 1)
       </Text>
 
